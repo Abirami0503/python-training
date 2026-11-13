@@ -1,0 +1,29 @@
+import numpy as np 
+
+marks = np.array([[70, 80, 90],
+    [60, 75, 85],
+    [88, 92, 79],
+    [55, 65, 70]
+])
+
+print("shape:", marks.shape)
+print("Data Type:", marks.dtype)
+print("Size:", marks.size)
+print("Slice values:", marks[:2, 2])
+student_avg = np.mean(marks, axis=1)
+subject_avg = np.mean(marks, axis=0)
+
+print("student averages:", np.round(student_avg, 2))
+print("subject averages:", subject_avg)
+
+grace_marks = marks + 5
+print("Grace marks:\n", grace_marks)
+
+weights = np.array([0.3, 0.3, 0.4])
+weighted_scores = np.dot(marks,weights)
+print("weighted scores:", weighted_scores)
+
+arr = np.arange(12)
+reshaped = arr.reshape(3,4)
+
+print("Reshaped array:\n", reshaped)
