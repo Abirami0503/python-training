@@ -1,0 +1,32 @@
+import pandas as pd
+
+df = pd.read_csv("orders.csv")
+
+print("Original Data:")
+print(df)
+
+missing = df["amount"].isna().sum()
+
+duplicates = df.duplicated().sum()
+
+print("\nMissing:", missing)
+print("Duplicates:", duplicates)
+
+df = df.drop_duplicates()
+
+median_value = df["amount"].median()
+
+df["amount"] = df["amount"].fillna(median_value)
+
+print("\nMedian used:", median_value)
+
+df["amount"] = pd.to_numeric(df["amount"])
+df["order_id"] = df["order_id"].astype(str)
+
+result = df.groupby("customer_id").agg(
+    total=("amount", "sum"), 
+    orders=("order_id", "count")
+)
+
+print("\nFinal Aggregation:")
+print(result)

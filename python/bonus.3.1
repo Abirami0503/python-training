@@ -1,0 +1,13 @@
+import numpy as np
+arr = np.arange(24)
+
+print("Orginal Array:")
+print(arr)
+
+reshaped_arr = arr.reshape(2, 3, 4)
+
+print("\nReshaped Array:")
+print(reshaped_arr)
+
+for i, slice_data in enumerate(reshaped_arr):
+    print("Slice", i + 1, "Shape:", slice_data.shape)

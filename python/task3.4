@@ -1,0 +1,48 @@
+import pandas as pd
+
+orders = pd.read_csv("orders.csv")
+customers = pd.read_csv("customers.csv")
+
+orders = orders.drop_duplicates()
+orders["amount"] = orders["amount"].fillna(
+    orders["amount"].median()
+)
+
+inner_join = pd.merge(
+    orders, customers,
+    on="customer_id",
+    how="inner"
+)
+
+print("Inner join rows:", len(inner_join),
+      "(customer 104 dropped)")
+
+left_join = pd.merge(
+    customers, orders,
+    on="customer_id",
+    how="left"
+)
+
+no_orders = left_join[left_join["order_id"].isna()]
+
+print("No orders:", ", ".join(no_orders["name"]))
+
+outer_join = pd.merge(
+    orders, customers,
+    on="customer_id",
+    how="outer",
+    indicator=True
+)
+
+unmatched = outer_join[outer_join["_merge"] == "left_only"]
+
+print("Order without customer: customer_id",
+      ", ".join(unmatched["customer_id"].astype(str)))
+
+print("\nExplanation of Joins:")
+
+print("Inner Join: Returns only matching records from both datasets.")
+
+print("Left Join: Returns all records from the left dataset and matching records from the right dataset.")
+
+print("Outer Join: Returns all records from both datasets, including unmatched records.")

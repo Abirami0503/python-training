@@ -1,0 +1,21 @@
+import pandas as pd
+
+january = pd.read_csv("january_orders.csv")
+
+february = pd.read_csv("february_orders.csv")
+
+all_orders = pd.concat(
+    [january, february],
+    ignore_index=True
+)
+
+print("Combined Orders:")
+print(all_orders)
+
+result = all_orders.groupby("customer_id").agg(
+    total=("amount", "sum"),
+    orders=("order_id", "count")
+)
+
+print("\nMonthly Order Summary:")
+print(result)

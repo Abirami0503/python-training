@@ -1,0 +1,162 @@
+import csv
+import json
+import logging
+from pathlib import Path
+from typing import List, Optional, Union
+
+import fitz
+from openpyxl import Workbook, load_workbook
+
+logging.basicConfig(
+    level=logging.ERROR,
+    format="%(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+EMPLOYEES: List[dict] = []
+
+def read_employees(path: Union[str, Path]) -> List[dict]:
+    file_path = Path(path)
+    employees = []
+
+    with file_path.open("r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            row["salary"] = int(row["salary"])
+            employees.append(row)
+
+    return employees
+
+def write_json(
+    employees: List[dict],
+    path: Union[str, Path]
+) -> None:
+    file_path = Path(path)
+
+    with file_path.open("w", encoding="utf-8") as file:
+        json.dump(employees, file, indent=4)
+
+def write_high_earners(
+    employees: List[dict],
+    path: Union[str, Path]
+) -> int:
+    high_earners = [
+        employee for employee in employees
+        if employee["salary"] > 50000
+    ]
+
+    file_path = Path(path)
+
+    with file_path.open("w", newline="", encoding="utf-8") as file:
+        fieldnames = ["name", "department", "salary"]
+
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(high_earners)
+
+    return len(high_earners)
+
+def create_excel(
+    employees: List[dict],
+    path: Union[str, Path]
+) -> None:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Employee Details"
+
+    sheet.append(["Name", "Department", "Salary"])
+
+    for employee in employees:
+        sheet.append([
+            employee["name"],
+            employee["department"],
+            employee["salary"]
+        ])
+
+    workbook.save(path)
+
+def read_excel(path: Union[str, Path]) -> List[tuple]:
+    workbook = load_workbook(path)
+    sheet = workbook.active
+
+    rows = list(
+        sheet.iter_rows(min_row=2, values_only=True)
+    )
+
+    workbook.close()
+    return rows
+
+def extract_pdf_text(path: Union[str, Path]) -> str:
+    file_path = Path(path)
+
+    with fitz.open(file_path) as document:
+        if len(document) == 0:
+            return ""
+
+        return document[0].get_text()[:100]
+
+def read_file(
+    path: Union[str, Path]
+) -> Optional[Union[dict, List[dict]]]:
+    file_path = Path(path)
+
+    try:
+        with file_path.open("r", encoding="utf-8") as file:
+            return json.load(file)
+
+    except FileNotFoundError:
+        logger.error("File not found: %s", file_path)
+        return None
+
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON file: %s", file_path)
+        return None
+
+def find_employee(name: str) -> Optional[dict]:
+    for employee in EMPLOYEES:
+        if employee["name"].lower() == name.lower():
+            return employee
+
+    return None
+
+def main() -> None:
+    global EMPLOYEES
+
+    EMPLOYEES = read_employees("employee.csv")
+
+    print("Rows read:", len(EMPLOYEES))
+
+    write_json(EMPLOYEES, "employees.json")
+
+    read_file("employees.json")
+
+    high_earners_count = write_high_earners(
+        EMPLOYEES,
+        "high_earners.csv"
+    )
+
+    print("High earners written:", high_earners_count)
+
+    create_excel(EMPLOYEES, "salary.xlsx")
+
+    excel_data = read_excel("salary.xlsx")
+
+    print(
+        "salary.xlsx created and read back:",
+        len(excel_data),
+        "rows"
+    )
+
+    pdf_path = Path("sample.pdf")
+
+    if pdf_path.exists():
+        pdf_text = extract_pdf_text(pdf_path)
+        print("PDF first 100 characters:", pdf_text)
+
+    read_file("missing.txt")
+
+
+if __name__ == "__main__":
+    main()
