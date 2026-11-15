@@ -29,16 +29,10 @@ def test_employee_not_found():
 
 
 def test_invalid_salary():
-    response = client.post(
-        "/employees",
-        json={"name": "Ravi", "salary": -5}
-    )
+    response = client.post("/employees", json={"name": "Ravi", "salary": -5})
     assert response.status_code == 422
 
 
 def test_empty_name():
-    response = client.post(
-        "/employees",
-        json={"name": "", "salary": 30000}
-    )
+    response = client.post("/employees", json={"name": "", "salary": 30000})
     assert response.status_code == 422
